@@ -1,4 +1,5 @@
 ﻿import 'dart:async';
+import 'dart:convert';
 import 'package:pip_services3_commons/pip_services3_commons.dart';
 import 'package:pip_services3_rpc/pip_services3_rpc.dart';
 import 'package:pip_services_metrics/pip_services_metrics.dart';
@@ -16,8 +17,9 @@ class MetricsHttpClientV1 extends CommandableHttpClient
     if (result == null) {
       return <MetricDefinitionV1>[];
     }
+
     return List<MetricDefinitionV1>.from(
-        result.map((item) => MetricDefinitionV1.fromJson(item)));
+        json.decode(result).map((item) => MetricDefinitionV1.fromJson(item)));
   }
 
   @override
@@ -30,7 +32,7 @@ class MetricsHttpClientV1 extends CommandableHttpClient
       return null;
     }
 
-    return MetricDefinitionV1.fromJson(result);
+    return MetricDefinitionV1.fromJson(json.decode(result));
   }
 
   @override
@@ -44,7 +46,7 @@ class MetricsHttpClientV1 extends CommandableHttpClient
       return DataPage<MetricValueSetV1>(<MetricValueSetV1>[], 0);
     }
     return DataPage<MetricValueSetV1>.fromJson(
-        result, (item) => MetricValueSetV1.fromJson(item));
+        json.decode(result), (item) => MetricValueSetV1.fromJson(item));
   }
 
   @override

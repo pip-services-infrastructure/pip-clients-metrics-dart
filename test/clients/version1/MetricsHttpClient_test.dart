@@ -57,9 +57,7 @@ void main() {
       await persistence.open(null);
 
       await service.open(null);
-      await client.open(
-        null,
-      );
+      await client.open(null);
     });
 
     tearDown(() async {

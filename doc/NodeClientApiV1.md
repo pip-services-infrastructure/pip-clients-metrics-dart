@@ -1,4 +1,4 @@
-# Client API (version 1) <br/> Metrics Microservices Client SDK for Node.js
+# Client API (version 1) <br/> Metrics Microservices Client SDK for Dart
 
 Node.js client API for Metrics microservice is a thin layer on the top of
 communication protocols. It hides details related to specific protocol implementation
@@ -17,16 +17,16 @@ and provides high-level API to access the microservice for simple and productive
 ## <a name="interface"></a> IMetricsClientV1 interface
 
 If you are using Typescript, you can use IMetricsClientV1 as a common interface across all client implementations. 
-If you are using plain Javascript, you shall not worry about IMetricsClientV1 interface. You can just expect that
+If you are using plain dart, you shall not worry about IMetricsClientV1 interface. You can just expect that
 all methods defined in this interface are implemented by all client classes.
 
-```javascript
-interface IMetricsClientV1 {
-    getMetricDefinitions(correlationId: string, callback: (err: any, items: MetricDefinitionV1[]) => void): void; 
-    getMetricDefinitionByName(correlationId: string, name: string, callback: (err: any, item: MetricDefinitionV1) => void): void;
-    getMetricsByFilter(correlationId: string, filter: FilterParams, paging: PagingParams, callback: (err: any, page: DataPage<MetricValueSetV1>) => void): void;
-    updateMetric(correlationId: string, update: MetricUpdateV1, maxTimeHorizon: number, callback: (err: any) => void): void;
-    updateMetrics(correlationId: string, updates: MetricUpdateV1[], maxTimeHorizon: number, callback: (err: any) => void): void;
+```dart
+abstract class IMetricsClientV1 {  
+   Future<List<MetricDefinitionV1>> getMetricDefinitions(String correlationId);
+   Future<MetricDefinitionV1> getMetricDefinitionByName(String correlationId, String name);
+   Future<DataPage<MetricValueSetV1>> getMetricsByFilter(String correlationId, FilterParams filter, PagingParams paging);
+   Future updateMetric(String correlationId, MetricUpdateV1 update, int maxTimeHorizon);
+   Future updateMetrics(String correlationId, List<MetricUpdateV1> updates, int maxTimeHorizon);
 }
 ```
 
@@ -101,17 +101,17 @@ Updates or create if not exist metrics
 
 MetricsHttpClientV1 is a client that implements HTTP protocol
 
-```javascript
+```dart
 class MetricsHttpClientV1 extends CommandableHttpClient implements IMetricsClientV1 {
-    constructor(config?: any);
-    setReferences(references);
-    open(correlationId, callback);
-    close(correlationId, callback);
-    getMetricDefinitions(correlationId: string, callback: (err: any, items: MetricDefinitionV1[]) => void): void; 
-    getMetricDefinitionByName(correlationId: string, name: string, callback: (err: any, item: MetricDefinitionV1) => void): void;
-    getMetricsByFilter(correlationId: string, filter: FilterParams, paging: PagingParams, callback: (err: any, page: DataPage<MetricValueSetV1>) => void): void;
-    updateMetric(correlationId: string, update: MetricUpdateV1, maxTimeHorizon: number, callback: (err: any) => void): void;
-    updateMetrics(correlationId: string, updates: MetricUpdateV1[], maxTimeHorizon: number, callback: (err: any) => void): void;
+    MetricsHttpClientV1([ConfigParams config]);
+    void setReferences(references IReferences);
+    Future open(correlationId);
+    Future close(correlationId);
+    Future<List<MetricDefinitionV1>> getMetricDefinitions(String correlationId);
+    Future<MetricDefinitionV1> getMetricDefinitionByName(String correlationId, String name);
+    Future<DataPage<MetricValueSetV1>> getMetricsByFilter(String correlationId, FilterParams filter,  PagingParams paging);
+    Future updateMetric(String correlationId, MetricUpdateV1 update, int maxTimeHorizon);
+    Future updateMetrics(String correlationId, List<MetricUpdateV1> updates, int maxTimeHorizon);
 }
 ```
 
@@ -126,17 +126,17 @@ class MetricsHttpClientV1 extends CommandableHttpClient implements IMetricsClien
 MetricsDirectClientV1 is a dummy client calls controller from the same container. 
 It can be used in monolytic deployments.
 
-```javascript
-class MetricsDirectClientV1 extends DirectClient<any> implements IMetricsClientV1 {
-    constructor();
-    setReferences(references);
-    open(correlationId, callback);
-    close(correlationId, callback);
-    getMetricDefinitions(correlationId: string, callback: (err: any, items: MetricDefinitionV1[]) => void): void; 
-    getMetricDefinitionByName(correlationId: string, name: string, callback: (err: any, item: MetricDefinitionV1) => void): void;
-    getMetricsByFilter(correlationId: string, filter: FilterParams, paging: PagingParams, callback: (err: any, page: DataPage<MetricValueSetV1>) => void): void;
-    updateMetric(correlationId: string, update: MetricUpdateV1, maxTimeHorizon: number, callback: (err: any) => void): void;
-    updateMetrics(correlationId: string, updates: MetricUpdateV1[], maxTimeHorizon: number, callback: (err: any) => void): void;
+```dart
+class MetricsDirectClientV1 extends DirectClient implements IMetricsClientV1 {
+    MetricsHttpClientV1([ConfigParams config]);
+    void setReferences(references IReferences);
+    Future open(correlationId);
+    Future close(correlationId);
+    Future<List<MetricDefinitionV1>> getMetricDefinitions(String correlationId);
+    Future<MetricDefinitionV1> getMetricDefinitionByName(String correlationId, String name);
+    Future<DataPage<MetricValueSetV1>> getMetricsByFilter(String correlationId, FilterParams filter,  PagingParams paging);
+    Future updateMetric(String correlationId, MetricUpdateV1 update, int maxTimeHorizon);
+    Future updateMetrics(String correlationId, List<MetricUpdateV1> updates, int maxTimeHorizon);
 }
 ```
 
@@ -145,14 +145,16 @@ class MetricsDirectClientV1 extends DirectClient<any> implements IMetricsClientV
 MetricsNullClientV1 is a dummy client that mimics the real client but doesn't call a microservice. 
 It can be useful in testing scenarios to cut dependencies on external microservices.
 
-```javascript
+```dart
 class MetricsNullClientV1 implements IMetricsClientV1 {
-    constructor();
-    getMetricDefinitions(correlationId: string, callback: (err: any, items: MetricDefinitionV1[]) => void): void; 
-    getMetricDefinitionByName(correlationId: string, name: string, callback: (err: any, item: MetricDefinitionV1) => void): void;
-    getMetricsByFilter(correlationId: string, filter: FilterParams, paging: PagingParams, callback: (err: any, page: DataPage<MetricValueSetV1>) => void): void;
-    updateMetric(correlationId: string, update: MetricUpdateV1, maxTimeHorizon: number, callback: (err: any) => void): void;
-    updateMetrics(correlationId: string, updates: MetricUpdateV1[], maxTimeHorizon: number, callback: (err: any) => void): void;
-    
+    MetricsHttpClientV1([ConfigParams config]);
+    void setReferences(references IReferences);
+    Future open(correlationId);
+    Future close(correlationId);
+    Future<List<MetricDefinitionV1>> getMetricDefinitions(String correlationId);
+    Future<MetricDefinitionV1> getMetricDefinitionByName(String correlationId, String name);
+    Future<DataPage<MetricValueSetV1>> getMetricsByFilter(String correlationId, FilterParams filter,  PagingParams paging);
+    Future updateMetric(String correlationId, MetricUpdateV1 update, int maxTimeHorizon);
+    Future updateMetrics(String correlationId, List<MetricUpdateV1> updates, int maxTimeHorizon);
 }
 ```

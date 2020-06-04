@@ -1,4 +1,3 @@
-
 // export class TimeHorizonV1 {
 //     public static Total: number = 0;
 //     public static Year: number = 1;
