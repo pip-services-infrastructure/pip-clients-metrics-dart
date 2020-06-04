@@ -1,5 +1,5 @@
 # <img src="https://github.com/pip-services/pip-services/raw/master/design/Logo.png" alt="Pip.Services Logo" style="max-width:30%"> 
-# Metrics microservice
+# Metrics Client SDK
 
 This is the client for metrics microservice. It keeps list of metrics.
 
@@ -105,43 +105,11 @@ abstract class IMetricsController {
 
 Right now the only way to get the microservice is to check it out directly from github repository
 ```bash
-git clone git@github.com:pip-services-infrastructure/pip-services-metrics-dart.git
+git clone git@github.com:pip-services-infrastructure/pip-clients-metrics-dart.git
 ```
 
 Pip.Service team is working to implement packaging and make stable releases available for your 
 as zip downloadable archieves.
-
-## Run
-
-Add **config.yaml** file to the root of the microservice folder and set configuration parameters.
-As the starting point you can use example configuration from **config.example.yaml** file. 
-
-Example of microservice configuration
-```yaml
-{    
----
-- descriptor: "pip-services-commons:logger:console:default:1.0"
-  level: "trace"
-
-- descriptor: "pip-services-metrics:persistence:file:default:1.0"
-  path: "./data/blobs"
-
-- descriptor: "pip-services-metrics:controller:default:default:1.0"
-
-- descriptor: "pip-services-metrics:service:http:default:1.0"
-  connection:
-    protocol: "http"
-    host: "0.0.0.0"
-    port: 3000
-}
-```
- 
-For more information on the microservice configuration see [Configuration Guide](Configuration.md).
-
-Start the microservice using the command:
-```bash
-dart ./bin/run.dart
-```
 
 ## Use
 Inside your code get the reference to the client SDK
