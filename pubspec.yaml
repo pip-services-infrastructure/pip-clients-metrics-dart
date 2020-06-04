@@ -1,0 +1,19 @@
+name: pip_clients_metrics
+version: "1.0.1"
+author: Sergey Seroukhov <seroukhov@gmail.com>
+description: This microservice is designed to manage various metrics characterizing the operation of a process.
+homepage: https://github.com/pip-services-infrastructure/pip-clients-metrics-dart
+
+environment:
+  sdk: ">=2.0.0 <3.0.0"
+
+dependencies:
+  pip_services3_commons: ^1.0.9
+  pip_services3_components: ^1.0.6
+  pip_services3_container: ">=1.0.3 <2.0.0"
+  pip_services3_rpc: ^1.0.3
+  pip_services_metrics: ^1.0.1
+  http: "^0.12.0"
+
+dev_dependencies:
+  test: '>=1.14.2 <2.0.0'
