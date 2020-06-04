@@ -1,208 +1,177 @@
-// let _ = require('lodash');
-// let async = require('async');
-// let assert = require('chai').assert;
+import 'package:test/test.dart';
 
-// import { FilterParams } from 'package:pip_services3_commons-node';
-// import { PagingParams } from 'package:pip_services3_commons-node';
+import 'package:pip_services3_commons/pip_services3_commons.dart';
+import 'package:pip_services_metrics/pip_services_metrics.dart';
+import 'package:pip_clients_metrics/pip_clients_metrics.dart';
 
-// import { IMetricsClientV1 } from '../../../src/clients/version1/IMetricsClientV1'
-// import { MetricUpdateV1 } from '../../../src/data/version1/MetricUpdateV1';
-// import { TimeHorizonV1 } from '../../../src/data/version1/TimeHorizonV1';
-// import { MetricValueSetV1 } from '../../../src/data/version1/MetricValueSetV1';
-// import { MetricDefinitionV1 } from '../../../src/data/version1/MetricDefinitionV1';
+class MetricsClientV1Fixture {
+  IMetricsClientV1 _client;
 
-// export class MetricsClientV1Fixture {
-//     private _client: IMetricsClientV1;
+  MetricsClientV1Fixture(IMetricsClientV1 client) {
+    expect(client, isNotNull);
+    _client = client;
+  }
 
-//     public constructor(client: IMetricsClientV1) {
-//         assert.isNotNull(client);
-//         this._client = client;
-//     }
+  void testMetrics() async {
+    // Update metric once
 
-//     public testMetrics(done) {
-//         async.series([
-//             // Update metric once
-//             (callback) => {
-//                 this._client.updateMetric(
-//                     null,
-//                     <MetricUpdateV1> {
-//                         name: "metric1",
-//                         dimension1: "A",
-//                         dimension2: "B",
-//                         dimension3: null,
-//                         year: 2018,
-//                         month: 8,
-//                         day: 26,
-//                         hour: 12,
-//                         value: 123
-//                     },
-//                     TimeHorizonV1.Hour,
-//                     callback
-//                 );
-//             },
-//             // Update metric second time
-//             (callback) => {
-//                 this._client.updateMetrics(
-//                     null,
-//                     [
-//                         <MetricUpdateV1> {
-//                             name: "metric1",
-//                             dimension1: "A",
-//                             dimension2: "B",
-//                             dimension3: null,
-//                             year: 2018,
-//                             month: 8,
-//                             day: 26,
-//                             hour: 13,
-//                             value: 321
-//                         }        
-//                     ],
-//                     TimeHorizonV1.Hour, 
-//                     callback    
-//                 );
-//             },
-//             // Get total metric
-//             (callback) => {
-//                 this._client.getMetricsByFilter(null,
-//                     FilterParams.fromTuples("name", "metric1"),
-//                     new PagingParams(),
-//                     (err, page) => {
-//                         assert.isObject(page);
-//                         assert.equal(1, page.data.length);
+    await _client.updateMetric(
+        null,
+        MetricUpdateV1()
+          ..name = 'metric1'
+          ..dimension1 = 'A'
+          ..dimension2 = 'B'
+          ..dimension3 = null
+          ..year = 2018
+          ..month = 8
+          ..day = 26
+          ..hour = 12
+          ..value = 123,
+        TimeHorizonV1.Hour);
 
-//                         let set: MetricValueSetV1;
-//                         set = page.data[0];
-//                         assert.equal("metric1", set.name);
-//                         assert.equal(TimeHorizonV1.Total, set.time_horizon);
-//                         assert.equal("A", set.dimension1);
-//                         assert.equal("B", set.dimension2);
-//                         assert.isNull(set.dimension3);
-//                         assert.equal(1, set.values.length); 
+    // Update metric second time
 
-//                         let value = set.values[0];
-//                         assert.equal(444, value.sum);
-//                         assert.equal(123, value.min);
-//                         assert.equal(321, value.max);
-//                         assert.equal(2, value.count);
+    await _client.updateMetrics(
+        null,
+        [
+          MetricUpdateV1()
+            ..name = 'metric1'
+            ..dimension1 = 'A'
+            ..dimension2 = 'B'
+            ..dimension3 = null
+            ..year = 2018
+            ..month = 8
+            ..day = 26
+            ..hour = 13
+            ..value = 321
+        ],
+        TimeHorizonV1.Hour);
 
-//                         callback(err);
-//                     }
-//                 );
-//             },
-//             (callback) => {
-//                 // Get hour metric
-//                 let set: MetricValueSetV1;
-//                 this._client.getMetricsByFilter(
-//                     null,
-//                     FilterParams.fromTuples(
-//                         "name", "metric1",
-//                         "time_horizon", "hour",
-//                         "from_year", 2018,
-//                         "from_month", 8,
-//                         "from_day", 26,
-//                         "from_hour", 0,
-//                         "to_year", 2018,
-//                         "to_month", 8,
-//                         "to_day", 26,
-//                         "to_hour", 23
-//                     ),
-//                     new PagingParams(), (err, page) => {
-//                         assert.equal(1, page.data.length);
-//                         set = page.data[0];
-//                         assert.equal("metric1", set.name);
-//                         assert.equal(TimeHorizonV1.Hour, set.time_horizon);
-//                         assert.equal("A", set.dimension1);
-//                         assert.equal("B", set.dimension2);
-//                         assert.isNull(set.dimension3);
+    // Get total metric
 
-//                         assert.equal(2, set.values.length);
-//                         let value = set.values[0];
-//                         assert.equal(2018, value.year);
-//                         assert.equal(8, value.month);
-//                         assert.equal(26, value.day);
-//                         assert.equal(12, value.hour);
-//                         assert.equal(123, value.sum);
-//                         assert.equal(123, value.min);
-//                         assert.equal(123, value.max);
-//                         assert.equal(1, value.count);
+    var page = await _client.getMetricsByFilter(
+        null, FilterParams.fromTuples(['name', 'metric1']), PagingParams());
 
-//                         value = set.values[1];
-//                         assert.equal(2018, value.year);
-//                         assert.equal(8, value.month);
-//                         assert.equal(26, value.day);
-//                         assert.equal(13, value.hour);
-//                         assert.equal(321, value.sum);
-//                         assert.equal(321, value.min);
-//                         assert.equal(321, value.max);
-//                         assert.equal(1, value.count);
-//                         callback(err);
-//                     });
-//             }
+    expect(page, isNotNull);
+    expect(1, page.data.length);
 
-//         ], done);
-//     }
+    MetricValueSetV1 set;
+    set = page.data[0];
+    expect('metric1', set.name);
+    expect(TimeHorizonV1.Total, set.time_horizon);
+    expect('A', set.dimension1);
+    expect('B', set.dimension2);
+    expect(set.dimension3, isNull);
+    expect(1, set.values.length);
 
-//     public testDefinitions(done) {
-//         async.series([
-//             // Update metric once
-//             (callback) => {
-//                 // Update metric second time
-//                 this._client.updateMetrics(
-//                     null,
-//                     [
-//                         <MetricUpdateV1> {
-//                             name: "metric2",
-//                             dimension1: "A",
-//                             dimension2: "B",
-//                             dimension3: null,
-//                             year: 2018,
-//                             month: 8,
-//                             day: 26,
-//                             hour: 12,
-//                             value: 123    
-//                         },
-//                         <MetricUpdateV1> {
-//                             name: "metric2",
-//                             dimension1: "A",
-//                             dimension2: "C",
-//                             dimension3: null,
-//                             year: 2018,
-//                             month: 8,
-//                             day: 26,
-//                             hour: 13,
-//                             value: 321
-//                         }                
-//                     ],
-//                     TimeHorizonV1.Hour,
-//                     callback
-//                 );
-//             },
-//             (callback) => {
-//                 // Get all definitions
-//                  this._client.getMetricDefinitions(
-//                      null,
-//                      (err, definitions) => {
-//                         assert.equal(1, definitions.length);
-//                         let definition: MetricDefinitionV1 = definitions[0];
-//                         assert.equal("metric2", definition.name);
-//                         assert.equal(1,definition.dimension1.length);
-//                         assert.equal("A", definition.dimension1[0]);
-//                         assert.equal(2, definition.dimension2.length);
-//                         assert.equal("B", definition.dimension2[0]);
-//                         assert.equal("C", definition.dimension2[1]);
-//                         assert.empty(definition.dimension3);
-//                         callback(err);
-//                     }
-//                 );
-//             },
-//             (callback) => {
-//                 // Get a single definition
-//                  this._client.getMetricDefinitionByName(null, "metric2", (err, definition)=>{
-//                     assert.equal("metric2", definition.name);
-//                     callback(err);
-//                 });                
-//             }
-//         ], done);
-//     }
-// }
+    var value = set.values[0];
+    expect(444, value.sum);
+    expect(123, value.min);
+    expect(321, value.max);
+    expect(2, value.count);
 
+    // Get hour metric
+
+    page = await _client.getMetricsByFilter(
+        null,
+        FilterParams.fromTuples([
+          'name',
+          'metric1',
+          'time_horizon',
+          'hour',
+          'from_year',
+          2018,
+          'from_month',
+          8,
+          'from_day',
+          26,
+          'from_hour',
+          0,
+          'to_year',
+          2018,
+          'to_month',
+          8,
+          'to_day',
+          26,
+          'to_hour',
+          23
+        ]),
+        PagingParams());
+
+    expect(1, page.data.length);
+    set = page.data[0];
+    expect('metric1', set.name);
+    expect(TimeHorizonV1.Hour, set.time_horizon);
+    expect('A', set.dimension1);
+    expect('B', set.dimension2);
+    expect(set.dimension3, isNull);
+
+    expect(2, set.values.length);
+    value = set.values[0];
+    expect(2018, value.year);
+    expect(8, value.month);
+    expect(26, value.day);
+    expect(12, value.hour);
+    expect(123, value.sum);
+    expect(123, value.min);
+    expect(123, value.max);
+    expect(1, value.count);
+
+    value = set.values[1];
+    expect(2018, value.year);
+    expect(8, value.month);
+    expect(26, value.day);
+    expect(13, value.hour);
+    expect(321, value.sum);
+    expect(321, value.min);
+    expect(321, value.max);
+    expect(1, value.count);
+  }
+
+  void testDefinitions() async {
+    // Update metric once
+
+    // Update metric second time
+    await _client.updateMetrics(
+        null,
+        [
+          MetricUpdateV1()
+            ..name = 'metric2'
+            ..dimension1 = 'A'
+            ..dimension2 = 'B'
+            ..dimension3 = null
+            ..year = 2018
+            ..month = 8
+            ..day = 26
+            ..hour = 12
+            ..value = 123,
+          MetricUpdateV1()
+            ..name = 'metric2'
+            ..dimension1 = 'A'
+            ..dimension2 = 'C'
+            ..dimension3 = null
+            ..year = 2018
+            ..month = 8
+            ..day = 26
+            ..hour = 13
+            ..value = 321
+        ],
+        TimeHorizonV1.Hour);
+    // Get all definitions
+    var definitions = await _client.getMetricDefinitions(null);
+
+    expect(1, definitions.length);
+    var definition = definitions[0];
+    expect('metric2', definition.name);
+    expect(1, definition.dimension1.length);
+    expect('A', definition.dimension1[0]);
+    expect(2, definition.dimension2.length);
+    expect('B', definition.dimension2[0]);
+    expect('C', definition.dimension2[1]);
+    expect(definition.dimension3, isEmpty);
+
+    // Get a single definition
+    definition = await _client.getMetricDefinitionByName(null, 'metric2');
+    expect('metric2', definition.name);
+  }
+}

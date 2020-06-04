@@ -1,83 +1,81 @@
-// import { ConfigParams } from 'package:pip_services3_commons-node';
-// import { Descriptor } from 'package:pip_services3_commons-node';
-// import { References } from 'package:pip_services3_commons-node';
+import 'package:test/test.dart';
+import 'package:pip_services3_commons/pip_services3_commons.dart';
 
-// import { MetricsMemoryPersistence } from 'pip-services-metrics-node';
-// import { MetricsController } from 'pip-services-metrics-node';
-// import { MetricsHttpServiceV1 } from 'pip-services-metrics-node';
+import 'package:pip_services_metrics/pip_services_metrics.dart';
+import 'package:pip_clients_metrics/pip_clients_metrics.dart';
 
-// import { MetricsHttpClientV1 } from '../../../src/clients/version1/MetricsHttpClientV1';
-// import { MetricsClientV1Fixture } from './MetricsClientV1Fixture';
+import './MetricsClientV1Fixture.dart';
 
-// suite('MetricsHttpClientV1', () => {
-//     let persistence: MetricsMemoryPersistence;
-//     let controller: MetricsController;
-//     let service: MetricsHttpServiceV1;
-//     let client: MetricsHttpClientV1;
-//     let fixture: MetricsClientV1Fixture;
+void main() {
+  group('MetricsHttpClientV1', () {
+    MetricsMemoryPersistence persistence;
+    MetricsController controller;
+    MetricsHttpServiceV1 service;
+    MetricsHttpClientV1 client;
+    MetricsClientV1Fixture fixture;
 
-//     setup((done) => {
-//         persistence = new MetricsMemoryPersistence();
-//         persistence.configure(new ConfigParams());
+    setUp(() async {
+      persistence = MetricsMemoryPersistence();
+      persistence.configure(ConfigParams());
 
-//         controller = new MetricsController();
-//         controller.configure(new ConfigParams());
+      controller = MetricsController();
+      controller.configure(ConfigParams());
 
-//         let httpConfig = ConfigParams.fromTuples(
-//             'connection.protocol', 'http',
-//             'connection.port', 3000,
-//             'connection.host', 'localhost'
-//         );
+      var httpConfig = ConfigParams.fromTuples([
+        'connection.protocol',
+        'http',
+        'connection.port',
+        3000,
+        'connection.host',
+        'localhost'
+      ]);
 
-//         service = new MetricsHttpServiceV1();
-//         service.configure(httpConfig);
+      service = MetricsHttpServiceV1();
+      service.configure(httpConfig);
 
-//         client = new MetricsHttpClientV1();
-//         client.configure(httpConfig);
+      client = MetricsHttpClientV1();
+      client.configure(httpConfig);
 
-//         let references = References.fromTuples(
-//             new Descriptor('pip-services-metrics', 'persistence', 'memory', 'default', '1.0'), persistence,
-//             new Descriptor('pip-services-metrics', 'controller', 'default', 'default', '1.0'), controller,
-//             new Descriptor('pip-services-metrics', 'service', 'http', 'default', '1.0'), service,
-//             new Descriptor('pip-services-metrics', 'client', 'http', 'default', '1.0'), client
-//         );
-//         controller.setReferences(references);
-//         service.setReferences(references);
-//         client.setReferences(references);
+      var references = References.fromTuples([
+        Descriptor(
+            'pip-services-metrics', 'persistence', 'memory', 'default', '1.0'),
+        persistence,
+        Descriptor(
+            'pip-services-metrics', 'controller', 'default', 'default', '1.0'),
+        controller,
+        Descriptor('pip-services-metrics', 'service', 'http', 'default', '1.0'),
+        service,
+        Descriptor('pip-services-metrics', 'client', 'http', 'default', '1.0'),
+        client
+      ]);
+      controller.setReferences(references);
+      service.setReferences(references);
+      client.setReferences(references);
 
-//         fixture = new MetricsClientV1Fixture(client);
+      fixture = MetricsClientV1Fixture(client);
 
-//         persistence.open(null, (err) => {
-//             if (err) {
-//                 done(err);
-//                 return;
-//             }
+      await persistence.open(null);
 
-//             service.open(null, (err) => {
-//                 if (err) {
-//                     done(err);
-//                     return;
-//                 }
+      await service.open(null);
+      await client.open(
+        null,
+      );
+    });
 
-//                 client.open(null, done);
-//             });
-//         });
-//     });
+    tearDown(() async {
+      await client.close(null);
+      await service.close(null);
+      await persistence.close(
+        null,
+      );
+    });
 
-//     teardown((done) => {
-//         client.close(null, (err) => {
-//             service.close(null, (err) => {
-//                 persistence.close(null, done);
-//             });    
-//         });
-//     });
+    test('Metrics CRUD Operations', () async {
+      await fixture.testMetrics();
+    });
 
-//     test('Metrics CRUD Operations', (done) => {
-//         fixture.testMetrics(done);
-//     });
-
-//     test('Metrics definitions', (done) => {
-//         fixture.testDefinitions(done);
-//     });
-
-// });
+    test('Metrics definitions', () async {
+      await fixture.testDefinitions();
+    });
+  });
+}

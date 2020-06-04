@@ -1,53 +1,59 @@
+import 'package:test/test.dart';
+import 'package:pip_services3_commons/pip_services3_commons.dart';
 
-// import { ConfigParams } from 'package:pip_services3_commons-node';
-// import { Descriptor } from 'package:pip_services3_commons-node';
-// import { References } from 'package:pip_services3_commons-node';
+import 'package:pip_services_metrics/pip_services_metrics.dart';
+import 'package:pip_clients_metrics/pip_clients_metrics.dart';
 
-// import { MetricsMemoryPersistence } from 'pip-services-metrics-node';
-// import { MetricsController } from 'pip-services-metrics-node';
-// import { MetricsMongoDbPersistence } from 'pip-services-metrics-node';
+import './MetricsClientV1Fixture.dart';
 
-// import { MetricsDirectClientV1 } from '../../../src/clients/version1/MetricsDirectClientV1';
-// import { MetricsClientV1Fixture } from './MetricsClientV1Fixture';
+void main() {
+  group('MetricsDirectClientV1', () {
+    MetricsMemoryPersistence persistence;
+    MetricsController controller;
+    MetricsDirectClientV1 client;
+    MetricsClientV1Fixture fixture;
 
-// suite('MetricsDirectClientV1', () => {
-//     let persistence: MetricsMemoryPersistence;
-//     let controller: MetricsController;
-//     let client: MetricsDirectClientV1;
-//     let fixture: MetricsClientV1Fixture;
+    setUp(() async {
+      persistence = MetricsMemoryPersistence();
+      persistence.configure(ConfigParams());
 
-//     setup((done) => {
-//         persistence = new MetricsMemoryPersistence();
-//         persistence.configure(new ConfigParams());
+      controller = MetricsController();
+      controller.configure(ConfigParams());
 
-//         controller = new MetricsController();
-//         controller.configure(new ConfigParams());
+      client = MetricsDirectClientV1();
 
-//         client = new MetricsDirectClientV1();
+      var references = References.fromTuples([
+        Descriptor(
+            'pip-services-metrics', 'persistence', 'memory', 'default', '1.0'),
+        persistence,
+        Descriptor(
+            'pip-services-metrics', 'controller', 'default', 'default', '1.0'),
+        controller,
+        Descriptor(
+            'pip-services-metrics', 'client', 'direct', 'default', '1.0'),
+        client
+      ]);
 
-//         let references = References.fromTuples(
-//             new Descriptor('pip-services-metrics', 'persistence', 'memory', 'default', '1.0'), persistence,
-//             new Descriptor('pip-services-metrics', 'controller', 'default', 'default', '1.0'), controller,
-//             new Descriptor('pip-services-metrics', 'client', 'direct', 'default', '1.0'), client
-//         );
+      controller.setReferences(references);
+      client.setReferences(references);
 
-//         controller.setReferences(references);
-//         client.setReferences(references);
+      fixture = MetricsClientV1Fixture(client);
 
-//         fixture = new MetricsClientV1Fixture(client);
+      await persistence.open(null);
+    });
 
-//         persistence.open(null, done);
-//     });
+    tearDown(() async {
+      await persistence.close(
+        null,
+      );
+    });
 
-//     teardown((done) => {
-//         persistence.close(null, done);
-//     });
+    test('Metrics CRUD Operations', () async {
+      await fixture.testMetrics();
+    });
 
-//     test('Metrics CRUD Operations', (done) => {
-//         fixture.testMetrics(done);
-//     });
-
-//     test('Metrics definitions', (done) => {
-//         fixture.testDefinitions(done);
-//     });
-// });
+    test('Metrics definitions', () async {
+      await fixture.testDefinitions();
+    });
+  });
+}
